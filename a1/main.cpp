@@ -3,6 +3,7 @@
 #include <OpenGP/SurfaceMesh/GL/SurfaceMeshRenderShaded.h>
 #include <OpenGP/SurfaceMesh/GL/SurfaceMeshRenderFlat.h>
 #include "ArcballWindow.h"
+#include "ReimannianGraph.h"
 using namespace OpenGP;
 
 extern void reconstruct(SurfaceMesh& cloud, SurfaceMesh& output, uint resolution);
@@ -15,6 +16,8 @@ int main(int argc, char** argv){
   
     ArcballWindow window("lab02_reconstruction", 640, 480);
 
+	uint n_vertices = point_cloud.n_vertices();
+
     // HOMEWORK TASKS
     // 1) Compute normals 
     //    - fetch kNN (k~6-10) for each point
@@ -26,6 +29,11 @@ int main(int argc, char** argv){
     //    - construct minimal spanning tree
     //    - flip the normals by traversing the tree
     
+
+	SurfaceMeshVerticesKDTree 
+
+	ReimannianGraph* g = new ReimannianGraph(n_vertices);
+
     ///--- Display the input
     SurfaceMeshRenderCloud points_gl(point_cloud);
     SurfaceMeshRenderVertexNormals normals_gl(point_cloud);

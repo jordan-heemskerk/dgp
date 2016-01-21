@@ -29,3 +29,8 @@ add_subdirectory(data)
 add_subdirectory(lab01_eigen)
 add_subdirectory(lab01_triangle)
 add_subdirectory(lab02_reconstruction)
+
+#================================
+# Assignment Subdirectories
+#================================
+add_subdirectory(a1)

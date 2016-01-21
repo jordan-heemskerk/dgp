@@ -4,9 +4,18 @@
 #include <OpenGP/SurfaceMesh/GL/SurfaceMeshRenderFlat.h>
 #include "ArcballWindow.h"
 #include "ReimannianGraph.h"
+#include "internal/SurfaceMeshVerticesKDTree.h"
+
 using namespace OpenGP;
 
 extern void reconstruct(SurfaceMesh& cloud, SurfaceMesh& output, uint resolution);
+
+// Configuration 
+// -------------
+#define K 6
+// -------------
+
+
 
 int main(int argc, char** argv){
     if(argc!=2) mFatal("application requires one parameter! e.g. sphere.obj");
@@ -30,7 +39,16 @@ int main(int argc, char** argv){
     //    - flip the normals by traversing the tree
     
 
-	SurfaceMeshVerticesKDTree 
+    SurfaceMesh::Vertex_property<std::vector<SurfaceMesh::Vertex>> kNNs = point_cloud.add_vertex_property<std::vector<SurfaceMesh::Vertex>>("v:kNN");
+
+	SurfaceMeshVerticesKDTree accelerator = SurfaceMeshVerticesKDTree(point_cloud);
+    for (const auto& vertex : point_cloud.vertices()){
+        Vec3 pos = point_cloud.position(vertex);
+        std::vector<SurfaceMesh::Vertex> kNN = accelerator.kNN(pos, K);
+        kNNs[(SurfaceMesh::Vertex)vertex] = kNN;
+    } 
+
+ 
 
 	ReimannianGraph* g = new ReimannianGraph(n_vertices);
 

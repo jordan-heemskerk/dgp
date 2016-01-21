@@ -1,5 +1,5 @@
 #!/bin/bash
-mkdir -p /User/jheems/bin
-cp screen .vimrc /Users/jheems/bin/
+mkdir -p /Users/jheems/bin
+cp ./screen ./.vimrc /Users/jheems/bin
 
-export PATH=/Users/jheems/bin;$PATH
+export PATH=/Users/jheems/bin:$PATH

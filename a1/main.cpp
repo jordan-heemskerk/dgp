@@ -40,6 +40,7 @@ int main(int argc, char** argv){
     
 
     SurfaceMesh::Vertex_property<std::vector<SurfaceMesh::Vertex>> kNNs = point_cloud.add_vertex_property<std::vector<SurfaceMesh::Vertex>>("v:kNN");
+	SurfaceMesh::Vertex_property<Vec3>vnormals = point_cloud.get_vertex_property<Vec3>("v:normal");
 
 	SurfaceMeshVerticesKDTree accelerator = SurfaceMeshVerticesKDTree(point_cloud);
     for (const auto& vertex : point_cloud.vertices()){
@@ -50,10 +51,19 @@ int main(int argc, char** argv){
         Eigen::MatrixXf kNN_mat(K, 3);
 
         for (int i = 0; i < K; i++) {
-            kNN_mat.row(i) = (Vec3)point_cloud.position(kNN[i]);
+			Vec3 pos = point_cloud.position(kNN[i]);
+			kNN_mat.row(i) = pos;
         }
-        std::cout << kNN_mat << std::endl << std::endl;
+        //std::cout << kNN_mat << std::endl << std::endl;
+		// compute covariance matrix of kNN_mat in eigen (inspiration from http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance)
+		Eigen::MatrixXf c = kNN_mat.rowwise() - kNN_mat.colwise().mean();
+		Eigen::Matrix3f cov = (c.adjoint() * c) / (double)(K - 1);
 
+		Eigen::EigenSolver<Eigen::MatrixXf> es(cov);
+		int idx;
+		es.eigenvalues().real().minCoeff(&idx);
+		Vec3 n = es.eigenvectors().real().col(idx);
+		vnormals[(SurfaceMesh::Vertex)vertex] = n;
     } 
 
  

@@ -46,6 +46,14 @@ int main(int argc, char** argv){
         Vec3 pos = point_cloud.position(vertex);
         std::vector<SurfaceMesh::Vertex> kNN = accelerator.kNN(pos, K);
         kNNs[(SurfaceMesh::Vertex)vertex] = kNN;
+
+        Eigen::MatrixXf kNN_mat(K, 3);
+
+        for (int i = 0; i < K; i++) {
+            kNN_mat.row(i) = (Vec3)point_cloud.position(kNN[i]);
+        }
+        std::cout << kNN_mat << std::endl << std::endl;
+
     } 
 
  

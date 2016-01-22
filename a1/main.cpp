@@ -39,31 +39,41 @@ int main(int argc, char** argv){
     //    - flip the normals by traversing the tree
     
 
+	//Setup SurfaceMesh properties
     SurfaceMesh::Vertex_property<std::vector<SurfaceMesh::Vertex>> kNNs = point_cloud.add_vertex_property<std::vector<SurfaceMesh::Vertex>>("v:kNN");
 	SurfaceMesh::Vertex_property<Vec3>vnormals = point_cloud.get_vertex_property<Vec3>("v:normal");
 
+	// Create KD Tree
 	SurfaceMeshVerticesKDTree accelerator = SurfaceMeshVerticesKDTree(point_cloud);
+
+	// Loop over all point_cloud points
     for (const auto& vertex : point_cloud.vertices()){
-        Vec3 pos = point_cloud.position(vertex);
+		
+		// Determine kNN
+		Vec3 pos = point_cloud.position(vertex);
         std::vector<SurfaceMesh::Vertex> kNN = accelerator.kNN(pos, K);
         kNNs[(SurfaceMesh::Vertex)vertex] = kNN;
 
+		// Put kNN into a matrix
         Eigen::MatrixXf kNN_mat(K, 3);
-
         for (int i = 0; i < K; i++) {
 			Vec3 pos = point_cloud.position(kNN[i]);
 			kNN_mat.row(i) = pos;
         }
-        //std::cout << kNN_mat << std::endl << std::endl;
+
 		// compute covariance matrix of kNN_mat in eigen (inspiration from http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance)
 		Eigen::MatrixXf c = kNN_mat.rowwise() - kNN_mat.colwise().mean();
 		Eigen::Matrix3f cov = (c.adjoint() * c) / (double)(K - 1);
 
+		// Determine eigenvalues/vectors of covariance matrix
 		Eigen::EigenSolver<Eigen::MatrixXf> es(cov);
 		int idx;
 		es.eigenvalues().real().minCoeff(&idx);
-		Vec3 n = es.eigenvectors().real().col(idx);
-		vnormals[(SurfaceMesh::Vertex)vertex] = n;
+		Vec3 smallest_e = es.eigenvectors().real().col(idx);
+
+		// This point's normal is the smallest eigenvector
+		vnormals[(SurfaceMesh::Vertex)vertex] = smallest_e;
+
     } 
 
  

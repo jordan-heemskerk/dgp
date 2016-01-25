@@ -50,12 +50,12 @@ int main(int argc, char** argv){
 	SurfaceMeshVerticesKDTree accelerator = SurfaceMeshVerticesKDTree(point_cloud);
 
 	// Loop over all point_cloud points
-	for (const auto& vertex : point_cloud.vertices()){
+	for (auto&& vertex : point_cloud.vertices()){
 
 		// Determine kNN
 		Vec3 pos = point_cloud.position(vertex);
 		std::vector<SurfaceMesh::Vertex> kNN = accelerator.kNN(pos, K);
-		kNNs[(SurfaceMesh::Vertex)vertex] = kNN;
+		kNNs[vertex] = kNN;
 
 		Vec3 center(0, 0, 0);
 
@@ -69,7 +69,7 @@ int main(int argc, char** argv){
 
 		//compute the center of the plane
 		center = center * (1.0 / (double)K);
-		vplane_c[(SurfaceMesh::Vertex)vertex] = center;
+		vplane_c[vertex] = center;
 
 		// compute covariance matrix of kNN_mat in eigen (inspiration from http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance)
 		Eigen::MatrixXf c = kNN_mat.rowwise() - kNN_mat.colwise().mean();
@@ -82,7 +82,7 @@ int main(int argc, char** argv){
 		Vec3 smallest_e = es.eigenvectors().real().col(idx);
 
 		// This point's normal is the smallest eigenvector
-		vnormals[(SurfaceMesh::Vertex)vertex] = smallest_e;
+		vnormals[vertex] = smallest_e;
 	}
 
 	// create a graph containing all vertices

@@ -24,7 +24,7 @@ public:
         // TASK: compute point-to-plane distance
 		Vec3 closest_point = vpoints[closest_idx];
 		Vec3 closest_normal = vnormals[closest_idx];
-		return p.squaredNorm() - std::pow(.99, 2);
+	//	return p.squaredNorm() - std::pow(.99, 2);
 		return (closest_point - p).dot(closest_normal);
 
     }

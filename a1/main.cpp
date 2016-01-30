@@ -14,7 +14,7 @@ extern void reconstruct(SurfaceMesh& cloud, SurfaceMesh& output, uint resolution
 
 // Configuration 
 // -------------
-#define K 6
+#define K 8
 // -------------
 
 

@@ -36,7 +36,14 @@ Scalar Decimator::halfedge_collapse_cost(Halfedge h){
     /// TASK: Compute the priority (quadric error) for collapsing halfedge "h"  
     /// hint: See what the class Quadric provides
     /// hint: Get/set the quadric of a vertex v by calling quadrics[v]
-    return nan();
+    auto v_i = mesh.from_vertex_handle(h);
+    auto v_j = mesh.to_vertex_handle(h);
+    auto Q_i = vquadrics(v_i);
+    auto Q_j = vquadrics(v_j);
+    auto Q_new = Q_i + Q_j;
+    auto cost = Q_new.evaluate(vpoint(v_j));
+
+    return cost;
 }
 
 /// Find smallest half-edge collapse for vertex and (potentially) add it to the queue
@@ -47,6 +54,15 @@ void Decimator::enqueue_vertex(Vertex v){
     /// TASK
     /// 1) find smallest error out-going halfedge collapse
     /// 2) add the best halfedge to the priority queue
+    
+    for (auto && h : mesh.halfedges(v)) {
+        if (halfedge_collapse_cost(h) < best_halfedge_cost) {
+            best_halfedge_cost = halfedge_collapse_cost(h);
+            best_halfedge = h;
+        }
+    }
+    
+    if (is_collapse_legal(best_halfedge)) queue(best_halfedge, best_halfedge_cost);
 }
 
 /// Initialization
@@ -60,6 +76,16 @@ void Decimator::init(){
     
     /// TASK: traverse all vertices and initialize the priority queue
     /// hint: Decimator::enqueue_vertex is to be used here
+    
+    for (auto&& vertex : mesh.vertices()) {
+        vquadrics[v].clear();
+        for (auto&& face : mesh.faces(vertex)) {
+            vquadrics[v] += Quadric(fnormals(face), vpoints(vertex));
+        }
+        
+        Decimator::enqueue_vertex(vertex);
+    }
+
 }
 
 void Decimator::exec(unsigned int target_n_vertices){
@@ -73,6 +99,9 @@ void Decimator::exec(unsigned int target_n_vertices){
 
         /// TASK: main execution logic
         /// 1) check if this collapse is legal
+        if (is_collapse_legal(h)) {
+            
+        }
         /// 2) perform the halfedge collapse (see docs)
         /// 3) update the quadric of v1 
         /// 4) re-compute the collapse costs in neighborhood of v1

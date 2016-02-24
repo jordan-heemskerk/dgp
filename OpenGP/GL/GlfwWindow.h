@@ -13,6 +13,7 @@ void glfw_error_callback(int error, const char* description){
     mFatal("ERROR%d: %s", error, description);
 }
 
+// TODO: factor out methods in GlfwWindow.cpp
 class GlfwWindow{
 /// @{
 protected:
@@ -29,9 +30,6 @@ public:
 public:
     ~GlfwWindow(){ active_windows()->erase(_window); }
     GlfwWindow(const std::string& title, int width, int height){
-        this->_width = width;
-        this->_height = height;
-
         {
             if( !glfwInit() )
                 mFatal() << "Failed to initialize GLFW";
@@ -50,7 +48,7 @@ public:
             
             /// Attempt to open the window: fails if required version unavailable
             /// @note Intel GPUs do not support OpenGL 3.0
-            if( !(_window = glfwCreateWindow(_width, _height, title.c_str(), nullptr, nullptr)) )
+            if( !(_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr)) )
                 mFatal() << "Failed to open OpenGL 3 GLFW window.";
             
             /// Outputs the OpenGL version
@@ -80,7 +78,7 @@ public:
             glfwSetKeyCallback(_window, glfw_key_callback);
             glfwSetMouseButtonCallback(_window, glfw_mouse_press_callback);
             glfwSetCursorPosCallback(_window, glfw_mouse_move_callback);
-            glfwSetWindowSizeCallback(_window, glfw_window_size_callback);
+            glfwSetFramebufferSizeCallback(_window, glfw_framebuffer_size_callback);
             glfwSetScrollCallback(_window, glfw_scroll_callback);
 
         }
@@ -96,10 +94,13 @@ public:
             glEnable (GL_BLEND);
             glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
-        scene.screen_resize(width, height);
+
+        ///--- Hack (manual) for retina display
+        glfwGetFramebufferSize(_window,&_width,&_height);
+        scene.screen_resize(_width,_height);       
     }
 
-    int run(){
+    virtual int run(){
         while(!glfwWindowShouldClose(_window)){
             scene.display();
             glfwSwapBuffers(_window);
@@ -113,28 +114,19 @@ public:
     }
     
 /// @{ TODO: add more callbacks
-    virtual void key_callback(int key, int scancode, int action, int mods){ 
+    virtual void key_callback(int key, int /*scancode*/, int action, int /*mods*/){ 
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
             glfwSetWindowShouldClose(_window, GL_TRUE);
         }
     }
-
-    virtual void mouse_press_callback(int button, int action, int mods) {
-    }
-
-    virtual void mouse_move_callback(double xPos, double yPos) {
-    }
-
-    virtual void window_size_callback(int width, int height) {
+    virtual void mouse_press_callback(int /*button*/, int /*action*/, int /*mods*/) {}
+    virtual void mouse_move_callback(double /*xPos*/, double /*yPos*/) {}
+    virtual void scroll_callback(double /*xOffset*/, double /*yOffset*/) {}    
+    virtual void framebuffer_size_callback(int width, int height){
         _width = width;
         _height = height;
+        scene.screen_resize(_width, _height);
     }
-
-    virtual void scroll_callback(double xOffset, double yOffset) {
-
-    }
-
-
 /// @}
 
 /// @{ GLFW Event dispatching
@@ -158,8 +150,8 @@ private:
         active_windows()->at(window)->mouse_move_callback(xPos, yPos);
     }
 
-    static void glfw_window_size_callback(GLFWwindow* window, int width, int height) {
-        active_windows()->at(window)->window_size_callback(width, height);
+    static void glfw_framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+        active_windows()->at(window)->framebuffer_size_callback(width, height);
     }
 
     static void glfw_scroll_callback(GLFWwindow* window, double xOffset, double yOffset) {

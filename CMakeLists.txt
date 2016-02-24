@@ -37,3 +37,4 @@ add_subdirectory(lab05_smoothing)
 # Assignment Subdirectories
 #================================
 add_subdirectory(a1)
+add_subdirectory(a2)

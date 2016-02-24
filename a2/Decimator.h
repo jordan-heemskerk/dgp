@@ -42,5 +42,6 @@ private:
     bool  is_collapse_legal(Halfedge h);
     Scalar halfedge_collapse_cost(Halfedge h);
     void  enqueue_vertex(Vertex v);
+    Quadric update_quadric(Vertex v);
 /// @}
 };

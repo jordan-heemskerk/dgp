@@ -9,6 +9,7 @@ bool Decimator::is_collapse_legal(Halfedge h){
 
     /// TASK: check if h would cause a non-manifold change (bad!!!)
     /// hint: search the SurfaceMesh documentation
+    if (!mesh.is_collapse_ok(h)) return false;
     
     /// TASK: what do you do if you have boundaries?
     /// note: this part is optional (use watertight input!)
@@ -36,12 +37,12 @@ Scalar Decimator::halfedge_collapse_cost(Halfedge h){
     /// TASK: Compute the priority (quadric error) for collapsing halfedge "h"  
     /// hint: See what the class Quadric provides
     /// hint: Get/set the quadric of a vertex v by calling quadrics[v]
-    auto v_i = mesh.from_vertex_handle(h);
-    auto v_j = mesh.to_vertex_handle(h);
-    auto Q_i = vquadrics(v_i);
-    auto Q_j = vquadrics(v_j);
+    auto v_i = mesh.from_vertex(h);
+    auto v_j = mesh.to_vertex(h);
+    auto Q_i = vquadrics[v_i];
+    auto Q_j = vquadrics[v_j];
     auto Q_new = Q_i + Q_j;
-    auto cost = Q_new.evaluate(vpoint(v_j));
+    auto cost = Q_new.evaluate(vpoints[v_j]);
 
     return cost;
 }
@@ -62,7 +63,15 @@ void Decimator::enqueue_vertex(Vertex v){
         }
     }
     
-    if (is_collapse_legal(best_halfedge)) queue(best_halfedge, best_halfedge_cost);
+    if (is_collapse_legal(best_halfedge)) queue.insert_or_update(best_halfedge, best_halfedge_cost);
+}
+
+Quadric Decimator::update_quadric(Vertex vertex) {
+    
+    vquadrics[vertex].clear();
+    for (auto&& face : mesh.faces(vertex)) {
+        vquadrics[vertex] += Quadric(fnormals[face], vpoints[vertex]);
+    }
 }
 
 /// Initialization
@@ -78,11 +87,8 @@ void Decimator::init(){
     /// hint: Decimator::enqueue_vertex is to be used here
     
     for (auto&& vertex : mesh.vertices()) {
-        vquadrics[v].clear();
-        for (auto&& face : mesh.faces(vertex)) {
-            vquadrics[v] += Quadric(fnormals(face), vpoints(vertex));
-        }
-        
+
+        update_quadric(vertex);
         Decimator::enqueue_vertex(vertex);
     }
 
@@ -99,12 +105,17 @@ void Decimator::exec(unsigned int target_n_vertices){
 
         /// TASK: main execution logic
         /// 1) check if this collapse is legal
-        if (is_collapse_legal(h)) {
-            
-        }
+        if (!is_collapse_legal(h)) continue;
         /// 2) perform the halfedge collapse (see docs)
-        /// 3) update the quadric of v1 
+        mesh.collapse(h);
+        /// 3) update the quadric of v1
+        Decimator::update_quadric(v1);
         /// 4) re-compute the collapse costs in neighborhood of v1
+        for (auto && out_edge : mesh.halfedges(v1)) {
+            enqueue_vertex(mesh.to_vertex(out_edge));
+        }
+        enqueue_vertex(v1);
+        
         
         // just some debug output (for long processes)
         if (mesh.n_vertices() % 1000 == 0)

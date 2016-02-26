@@ -7,6 +7,8 @@ bool Decimator::is_collapse_legal(Halfedge h){
     Vertex v0 = mesh.from_vertex(h);
     Vertex v1 = mesh.to_vertex(h);
 
+    
+    if (mesh.is_deleted(h)) return false;
     /// TASK: check if h would cause a non-manifold change (bad!!!)
     /// hint: search the SurfaceMesh documentation
     if (!mesh.is_collapse_ok(h)) return false;

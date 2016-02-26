@@ -23,6 +23,16 @@ bool Decimator::is_collapse_legal(Halfedge h){
     Point old_p0 = vpoints[v0]; ///< used to undo collapse simulation
     vpoints[v0] = vpoints[v1]; ///< simulates the collapse
     {
+        for (auto && face : mesh.faces(v0)) {
+            auto simulated = mesh.compute_face_normal(face);
+            auto original = fnormals[face];
+            
+            if (simulated == Eigen::Vector3f::Zero()) continue;
+            
+            auto cos_of_dihedral = -simulated.dot(original)/ (simulated.norm() * original.norm());
+            
+            if (cos_of_dihedral >= min_cos) causes_foldover = true;
+        }
         /// TASK: Check that the (post-collapse) faces have cos(dihedral)<min_cos
         /// note: decimation would still run without this!
         /// hint: see SurfaceMesh::compute_face_normal()

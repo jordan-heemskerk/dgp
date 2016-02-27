@@ -1,0 +1,4 @@
+Jordan Heemskerk
+V00158837
+
+I believe that I have implemented all mandatory parts of the assignment. The Quadric.h class is fully implemented and tested. The Decimator.cpp class has every task implemented except for checking if a halfedge is on a boundary of the mesh. I'm guessing that this could be done by computing the local mean curvature. Sharp edges will have a very severe amount of curvature and so you could avoid collapsing those halfedges associated with a large amount of curvature. Unforunately I didn't have time to implement this to see if it works. Other than that, I believe that everything is in working order!

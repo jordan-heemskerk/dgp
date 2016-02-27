@@ -23,27 +23,19 @@ bool Decimator::is_collapse_legal(Halfedge h){
     Point old_p0 = vpoints[v0]; ///< used to undo collapse simulation
     vpoints[v0] = vpoints[v1]; ///< simulates the collapse
     {
-        /*for (auto && face : mesh.faces(v0)) {
-            auto simulated = mesh.compute_face_normal(face);
-            auto original = fnormals[face];
-            
-            if (simulated == Eigen::Vector3f::Zero()) continue;
-            
-            auto cos_of_dihedral = -simulated.dot(original)/ (simulated.norm() * original.norm());
-            
-            if (cos_of_dihedral >= min_cos) causes_foldover = true;
-        }*/
 
-		for (auto && he : mesh.halfedges(v0)) {
-			SurfaceMesh::Face current_face = mesh.face(he);
-			SurfaceMesh::Face next_face = mesh.face(mesh.opposite_halfedge(mesh.next_halfedge(he)));
+	for (auto && he : mesh.halfedges(v0)) {
+			SurfaceMesh::Face current_face = mesh.face(he); // grab current face
+			SurfaceMesh::Face next_face = mesh.face(mesh.opposite_halfedge(mesh.next_halfedge(he))); // get next adjacent face
 
 			auto current_normal = mesh.compute_face_normal(current_face);
 			auto next_normal = mesh.compute_face_normal(next_face);
 
 			auto cos_of_dihedral = - current_normal.dot(next_normal) / (current_normal.norm() * next_normal.norm() );
 
-			if (cos_of_dihedral >= min_cos) causes_foldover = true;
+			if (cos_of_dihedral >= min_cos) {
+				causes_foldover = true;
+			}
 
 		}
         /// TASK: Check that the (post-collapse) faces have cos(dihedral)<min_cos

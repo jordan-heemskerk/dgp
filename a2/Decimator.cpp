@@ -23,7 +23,7 @@ bool Decimator::is_collapse_legal(Halfedge h){
     Point old_p0 = vpoints[v0]; ///< used to undo collapse simulation
     vpoints[v0] = vpoints[v1]; ///< simulates the collapse
     {
-        for (auto && face : mesh.faces(v0)) {
+        /*for (auto && face : mesh.faces(v0)) {
             auto simulated = mesh.compute_face_normal(face);
             auto original = fnormals[face];
             
@@ -32,7 +32,20 @@ bool Decimator::is_collapse_legal(Halfedge h){
             auto cos_of_dihedral = -simulated.dot(original)/ (simulated.norm() * original.norm());
             
             if (cos_of_dihedral >= min_cos) causes_foldover = true;
-        }
+        }*/
+
+		for (auto && he : mesh.halfedges(v0)) {
+			SurfaceMesh::Face current_face = mesh.face(he);
+			SurfaceMesh::Face next_face = mesh.face(mesh.opposite_halfedge(mesh.next_halfedge(he)));
+
+			auto current_normal = mesh.compute_face_normal(current_face);
+			auto next_normal = mesh.compute_face_normal(next_face);
+
+			auto cos_of_dihedral = - current_normal.dot(next_normal) / (current_normal.norm() * next_normal.norm() );
+
+			if (cos_of_dihedral >= min_cos) causes_foldover = true;
+
+		}
         /// TASK: Check that the (post-collapse) faces have cos(dihedral)<min_cos
         /// note: decimation would still run without this!
         /// hint: see SurfaceMesh::compute_face_normal()
@@ -78,7 +91,7 @@ void Decimator::enqueue_vertex(Vertex v){
     if (is_collapse_legal(best_halfedge)) queue.insert_or_update(best_halfedge, best_halfedge_cost);
 }
 
-Quadric Decimator::update_quadric(Vertex vertex) {
+void Decimator::update_quadric(Vertex vertex) {
     
     vquadrics[vertex].clear();
     for (auto&& face : mesh.faces(vertex)) {
